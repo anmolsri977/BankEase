@@ -23,6 +23,9 @@ public class AccountService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     private final SecureRandom random = new SecureRandom();
 
     public Account createAccount(CreateAccountRequest request, String userEmail) {
@@ -48,7 +51,9 @@ public class AccountService {
         account.setCreatedAt(LocalDateTime.now());
         account.setUser(user);
 
-        return repo.save(account);
+        Account saved = repo.save(account);
+        auditLogService.logAction(user, "ACCOUNT_CREATED", "Account created with number: " + accountNumber);
+        return saved;
     }
 
     private String generateUniqueAccountNumber() {

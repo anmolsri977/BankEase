@@ -21,9 +21,7 @@ public class AuditLog {
 
     private String action;
 
-    private String details;
-
-    private String ipAddress;
+    private String description;
 
     private LocalDateTime timestamp;
 

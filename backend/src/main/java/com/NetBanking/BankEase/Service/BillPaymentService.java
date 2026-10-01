@@ -28,6 +28,9 @@ public class BillPaymentService {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     private final SecureRandom random = new SecureRandom();
 
     @Transactional(rollbackFor = Exception.class)
@@ -97,7 +100,9 @@ public class BillPaymentService {
         payment.setAccount(account);
         payment.setUser(account.getUser());
 
-        return repo.save(payment);
+        BillPayment saved = repo.save(payment);
+        auditLogService.logAction(payment.getUser(), "BILL_PAYMENT", "Paid " + payment.getAmount() + " to " + payment.getBillerName() + " (" + payment.getBillType() + ")");
+        return saved;
     }
 
     private String generateUniquePaymentId() {

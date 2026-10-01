@@ -25,6 +25,9 @@ public class TransactionService {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     private final SecureRandom random = new SecureRandom();
 
     @Transactional(rollbackFor = Exception.class)
@@ -97,7 +100,9 @@ public class TransactionService {
         transaction.setReceiverAccount(receiver);
         transaction.setAccount(sender);
 
-        return repo.save(transaction);
+        Transaction saved = repo.save(transaction);
+        auditLogService.logAction(sender.getUser(), "FUND_TRANSFER", "Transferred " + request.getAmount() + " from " + sender.getAccountNumber() + " to " + receiver.getAccountNumber());
+        return saved;
     }
 
     private String generateUniqueTransactionId() {

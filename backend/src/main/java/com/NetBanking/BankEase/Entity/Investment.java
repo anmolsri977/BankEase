@@ -20,17 +20,20 @@ public class Investment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private String investmentId;
+
     private String investmentType;
 
     private BigDecimal amount;
 
-    private Double interestRate;
-
     private String status;
 
-    private LocalDateTime startDate;
+    private LocalDateTime investmentDate;
 
     private LocalDateTime maturityDate;
+
+    private BigDecimal returns;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

@@ -28,6 +28,9 @@ public class LoanService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     private final SecureRandom random = new SecureRandom();
 
     @Transactional(rollbackFor = Exception.class)
@@ -66,7 +69,9 @@ public class LoanService {
         loan.setApplicationDate(LocalDateTime.now());
         loan.setUser(user);
 
-        return repo.save(loan);
+        Loan saved = repo.save(loan);
+        auditLogService.logAction(user, "LOAN_APPLIED", "Applied for " + saved.getLoanType() + " loan of " + saved.getAmount());
+        return saved;
     }
 
     private String generateUniqueLoanId() {
@@ -144,6 +149,8 @@ public class LoanService {
             loan.setRemarks(request.getRemarks());
         }
 
-        return repo.save(loan);
+        Loan saved = repo.save(loan);
+        auditLogService.logAction(saved.getUser(), "LOAN_STATUS_UPDATED", "Loan " + saved.getLoanId() + " status updated to " + targetStatus);
+        return saved;
     }
 }

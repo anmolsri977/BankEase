@@ -21,6 +21,9 @@ public class BeneficiaryService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     public Beneficiary createBeneficiary(CreateBeneficiaryRequest request, String userEmail) {
         validateRequest(request);
 
@@ -34,7 +37,9 @@ public class BeneficiaryService {
         beneficiary.setIfscCode(request.getIfscCode().trim().toUpperCase());
         beneficiary.setUser(user);
 
-        return repo.save(beneficiary);
+        Beneficiary saved = repo.save(beneficiary);
+        auditLogService.logAction(user, "BENEFICIARY_ADDED", "Beneficiary added: " + saved.getName() + " (" + saved.getAccountNumber() + ")");
+        return saved;
     }
 
     public List<Beneficiary> getMyBeneficiaries(String userEmail) {

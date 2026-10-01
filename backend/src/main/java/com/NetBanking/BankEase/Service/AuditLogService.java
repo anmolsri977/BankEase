@@ -1,41 +1,46 @@
 package com.NetBanking.BankEase.Service;
 
 import com.NetBanking.BankEase.Entity.AuditLog;
+import com.NetBanking.BankEase.Entity.User;
 import com.NetBanking.BankEase.Repository.AuditLogRepository;
+import com.NetBanking.BankEase.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AuditLogService {
 
     @Autowired
-    AuditLogRepository repo;
+    private AuditLogRepository repo;
 
-    public void addAuditLog(AuditLog auditLog) {
-        repo.save(auditLog);
+    @Autowired
+    private UserRepository userRepository;
+
+    public AuditLog logAction(User user, String action, String description) {
+        AuditLog log = new AuditLog();
+        log.setUser(user);
+        log.setAction(action);
+        log.setDescription(description);
+        log.setTimestamp(LocalDateTime.now());
+        return repo.save(log);
+    }
+
+    public AuditLog logAction(String userEmail, String action, String description) {
+        User user = null;
+        if (userEmail != null && !userEmail.trim().isEmpty()) {
+            user = userRepository.findByEmail(userEmail).orElse(null);
+        }
+        return logAction(user, action, description);
+    }
+
+    public List<AuditLog> getMyAuditLogs(String userEmail) {
+        return repo.findByUserEmailOrderByTimestampDesc(userEmail);
     }
 
     public List<AuditLog> getAllAuditLogs() {
-        return repo.findAll();
-    }
-
-    public Optional<AuditLog> getAuditLogById(Long id) {
-        return repo.findById(id);
-    }
-
-    public String updateAuditLog(AuditLog auditLog) {
-        repo.save(auditLog);
-        return "Updated audit log successfully";
-    }
-
-    public void deleteAuditLog(Long id) {
-        repo.deleteById(id);
-    }
-
-    public void deleteAllAuditLogs() {
-        repo.deleteAll();
+        return repo.findAllByOrderByTimestampDesc();
     }
 }
