@@ -20,6 +20,36 @@ public class UserController {
         service.addUser(user);
     }
 
+    @GetMapping({"/profile", "/me"})
+    public org.springframework.http.ResponseEntity<?> getMyProfile(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null) {
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        String email = authentication.getName();
+        Optional<User> userOpt = service.getUserByEmail(email);
+        if (userOpt.isEmpty()) {
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND)
+                    .body(java.util.Map.of("error", "User not found"));
+        }
+        return org.springframework.http.ResponseEntity.ok(userOpt.get());
+    }
+
+    @PutMapping({"/profile", "/me"})
+    public org.springframework.http.ResponseEntity<?> updateProfile(
+            @RequestBody com.NetBanking.BankEase.Dto.UpdateProfileRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        if (authentication == null) {
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            User updated = service.updateProfile(request, authentication.getName());
+            return org.springframework.http.ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return org.springframework.http.ResponseEntity.badRequest()
+                    .body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping
     public List<User> fetchUsers(){
         return service.getAllUsers();

@@ -30,6 +30,31 @@ public class UserService {
         return "Updated user successfully";
     }
 
+    public Optional<User> getUserByEmail(String email) {
+        return repo.findByEmail(email);
+    }
+
+    public User updateProfile(com.NetBanking.BankEase.Dto.UpdateProfileRequest request, String email) {
+        User user = repo.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+        if (request != null) {
+            if (request.getName() != null && !request.getName().trim().isEmpty()) {
+                if (request.getName().trim().length() < 2) {
+                    throw new IllegalArgumentException("Name must have at least 2 characters");
+                }
+                user.setName(request.getName().trim());
+            }
+            if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+                String phone = request.getPhone().trim();
+                if (!phone.matches("^[6-9]\\d{9}$")) {
+                    throw new IllegalArgumentException("Invalid phone number. Must be 10 digits starting with 6, 7, 8, or 9.");
+                }
+                user.setPhone(phone);
+            }
+        }
+        return repo.save(user);
+    }
+
     public void deleteUser(Long id){
         repo.deleteById(id);
     }

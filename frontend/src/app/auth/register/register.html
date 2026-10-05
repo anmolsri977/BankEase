@@ -1,0 +1,149 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <div class="brand-badge">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg>
+      </div>
+      <h1 class="brand-title">BankEase</h1>
+      <p class="brand-subtitle">Create your online banking account</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="alert-error" role="alert">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    @if (successMessage) {
+      <div class="alert-success" role="alert">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>{{ successMessage }}</span>
+      </div>
+    }
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. John Doe"
+          class="form-input"
+          [class.input-error]="name?.invalid && (name?.dirty || name?.touched)"
+          autocomplete="name"
+        />
+        @if (name?.invalid && (name?.dirty || name?.touched)) {
+          <div class="error-text">
+            @if (name?.errors?.['required']) {
+              <span>Name is required.</span>
+            } @else if (name?.errors?.['minlength']) {
+              <span>Name must be at least 2 characters.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="e.g. user@example.com"
+          class="form-input"
+          [class.input-error]="email?.invalid && (email?.dirty || email?.touched)"
+          autocomplete="email"
+        />
+        @if (email?.invalid && (email?.dirty || email?.touched)) {
+          <div class="error-text">
+            @if (email?.errors?.['required']) {
+              <span>Email is required.</span>
+            } @else if (email?.errors?.['email']) {
+              <span>Please enter a valid email address.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Minimum 8 characters"
+          class="form-input"
+          [class.input-error]="password?.invalid && (password?.dirty || password?.touched)"
+          autocomplete="new-password"
+        />
+        @if (password?.invalid && (password?.dirty || password?.touched)) {
+          <div class="error-text">
+            @if (password?.errors?.['required']) {
+              <span>Password is required.</span>
+            } @else if (password?.errors?.['minlength']) {
+              <span>Password must be at least 8 characters.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="phone" class="form-label">Phone Number</label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          placeholder="10-digit mobile number (e.g. 9876543210)"
+          class="form-input"
+          [class.input-error]="phone?.invalid && (phone?.dirty || phone?.touched)"
+          autocomplete="tel"
+        />
+        @if (phone?.invalid && (phone?.dirty || phone?.touched)) {
+          <div class="error-text">
+            @if (phone?.errors?.['required']) {
+              <span>Phone number is required.</span>
+            } @else if (phone?.errors?.['pattern']) {
+              <span>Please enter a valid 10-digit Indian mobile number.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="kycStatus" class="form-label">KYC Status</label>
+        <input
+          id="kycStatus"
+          type="text"
+          formControlName="kycStatus"
+          class="form-input"
+          readonly
+        />
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isLoading">
+        @if (isLoading) {
+          <span>Creating Account...</span>
+        } @else {
+          <span>Register</span>
+        }
+      </button>
+    </form>
+
+    <div class="register-footer">
+      <span>Already have an account?</span>
+      <a routerLink="/login" class="login-link">Login</a>
+    </div>
+  </div>
+</div>

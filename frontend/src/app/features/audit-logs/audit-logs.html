@@ -1,0 +1,207 @@
+<div class="audit-logs-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">Audit Logs</span>
+      </div>
+
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" class="nav-link" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/accounts" class="nav-link" id="nav-accounts">Accounts</a>
+        <a routerLink="/transactions" class="nav-link" id="nav-transactions">Transfers</a>
+        <a routerLink="/beneficiaries" class="nav-link" id="nav-beneficiaries">Beneficiaries</a>
+        <a routerLink="/bill-payments" class="nav-link" id="nav-bill-payments">Bills</a>
+        <a routerLink="/loans" class="nav-link" id="nav-loans">Loans</a>
+        <a routerLink="/investments" class="nav-link" id="nav-investments">Investments</a>
+        <a routerLink="/profile" class="nav-link" id="nav-profile">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (errorMessage) {
+    <div class="alert-error" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="error-text-content">{{ errorMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  <main class="audit-logs-main">
+    <div class="audit-logs-container">
+      <!-- Page Header -->
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">Security & Audit Trail</h1>
+          <p class="page-subtitle">Real-time immutable record of all security events, fund transfers, and account activities</p>
+        </div>
+        <button
+          type="button"
+          class="btn-refresh"
+          id="btn-refresh-audit-logs"
+          (click)="loadLogs()"
+          [disabled]="isLoading"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </section>
+
+      <!-- Metrics Summary -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Total Logged Activities</span>
+          <span class="metric-value">{{ auditLogs.length }}</span>
+          <span class="metric-hint">Chronological order</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Audit Trail Integrity</span>
+          <span class="metric-value">Verified</span>
+          <span class="metric-hint">Zero tampering guarantee</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Account Protection</span>
+          <span class="metric-value">Active</span>
+          <span class="metric-hint">24x7 automated audit</span>
+        </div>
+      </section>
+
+      <!-- Filter / Search Section -->
+      <section class="filter-section">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            id="audit-search-input"
+            [(ngModel)]="filterQuery"
+            placeholder="Search by action, description, or keyword..."
+            class="search-input"
+          />
+        </div>
+
+        @if (availableActions.length > 0) {
+          <div class="action-filters">
+            <button
+              type="button"
+              class="filter-pill"
+              [class.active]="selectedActionFilter === 'ALL'"
+              (click)="selectedActionFilter = 'ALL'"
+            >
+              All Events ({{ auditLogs.length }})
+            </button>
+            @for (action of availableActions; track action) {
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="selectedActionFilter === action"
+                (click)="selectedActionFilter = action"
+              >
+                {{ action }}
+              </button>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="state-container loading-state">
+          <div class="spinner"></div>
+          <span>Loading audit log trail...</span>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (!isLoading && filteredLogs.length === 0) {
+        <div class="state-container empty-state">
+          <div class="empty-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <h2 class="empty-title">No Audit Records Found</h2>
+          <p class="empty-desc">
+            @if (filterQuery || selectedActionFilter !== 'ALL') {
+              No logs matched your current search filters. Try clearing your search term.
+            } @else {
+              No audit logs have been recorded for your account yet.
+            }
+          </p>
+        </div>
+      }
+
+      <!-- Audit Logs Timeline / Table -->
+      @if (!isLoading && filteredLogs.length > 0) {
+        <section class="logs-card">
+          <div class="table-responsive">
+            <table class="logs-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Action</th>
+                  <th>Description</th>
+                  <th>User Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (log of filteredLogs; track log.id) {
+                  <tr class="log-row" [id]="'log-row-' + log.id">
+                    <td class="col-timestamp">
+                      <span class="timestamp-text">{{ log.timestamp | date:'medium' }}</span>
+                    </td>
+                    <td class="col-action">
+                      <span class="action-badge" [ngClass]="'action-' + log.action.toLowerCase()">
+                        {{ log.action }}
+                      </span>
+                    </td>
+                    <td class="col-description">
+                      <span class="description-text">{{ log.description }}</span>
+                    </td>
+                    <td class="col-user">
+                      @if (log.user?.email) {
+                        <div class="user-meta">
+                          <span class="user-email font-mono">{{ log.user?.email }}</span>
+                          @if (log.user?.name) {
+                            <span class="user-name">({{ log.user?.name }})</span>
+                          }
+                        </div>
+                      } @else {
+                        <span class="user-system">System User</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+    </div>
+  </main>
+</div>

@@ -1,0 +1,303 @@
+<div class="accounts-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+        </div>
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">Accounts</span>
+      </div>
+
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/beneficiaries" class="nav-link" id="nav-beneficiaries">Beneficiaries</a>
+        <a routerLink="/bill-payments" class="nav-link" id="nav-bill-payments">Bills</a>
+        <a routerLink="/transactions" class="nav-link" id="nav-transactions">Transfers</a>
+        <a routerLink="/loans" class="nav-link" id="nav-loans">Loans</a>
+        <a routerLink="/investments" class="nav-link" id="nav-investments">Investments</a>
+        <a routerLink="/audit-logs" class="nav-link" id="nav-audit-logs">Audit Logs</a>
+        <a routerLink="/profile" class="nav-link" id="nav-profile">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (errorMessage) {
+    <div class="alert-error" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="error-text-content">{{ errorMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="alert-success" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span class="success-text-content">{{ successMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss success">&times;</button>
+    </div>
+  }
+
+  <main class="accounts-main">
+    <div class="accounts-container">
+      <!-- Page Header -->
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">My Bank Accounts</h1>
+          <p class="page-subtitle">Manage your savings and current accounts, check balances, and open new accounts</p>
+        </div>
+        <button
+          type="button"
+          class="btn-primary"
+          id="btn-open-account-toggle"
+          (click)="toggleCreateForm()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>{{ showCreateForm ? 'Close Form' : 'Open New Account' }}</span>
+        </button>
+      </section>
+
+      <!-- Metrics Summary -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Total Net Balance</span>
+          <span class="metric-value">{{ totalBalance | currency:'INR':'symbol':'1.2-2' }}</span>
+          <span class="metric-hint">Across all accounts</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Total Accounts</span>
+          <span class="metric-value">{{ accounts.length }}</span>
+          <span class="metric-hint">Savings & Current</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Active Accounts</span>
+          <span class="metric-value">{{ activeAccountsCount }}</span>
+          <span class="metric-hint">Ready for transactions</span>
+        </div>
+      </section>
+
+      <!-- Account Creation Card (Shown when toggled) -->
+      @if (showCreateForm) {
+        <section class="create-account-section" id="create-account-card">
+          <div class="create-card">
+            <div class="create-card-header">
+              <h2 class="create-title">Open a New Bank Account</h2>
+              <p class="create-subtitle">Select the type of account you wish to open. It will be activated immediately.</p>
+            </div>
+
+            <form (ngSubmit)="onCreateAccount()" class="create-form">
+              <div class="account-types-selection">
+                <label class="account-type-option" [class.selected]="selectedAccountType === 'SAVINGS'">
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value="SAVINGS"
+                    [(ngModel)]="selectedAccountType"
+                    id="type-savings"
+                  />
+                  <div class="option-content">
+                    <span class="option-title">Savings Account</span>
+                    <span class="option-desc">Earn interest with a secure account designed for personal savings and daily banking.</span>
+                  </div>
+                </label>
+
+                <label class="account-type-option" [class.selected]="selectedAccountType === 'CURRENT'">
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value="CURRENT"
+                    [(ngModel)]="selectedAccountType"
+                    id="type-current"
+                  />
+                  <div class="option-content">
+                    <span class="option-title">Current Account</span>
+                    <span class="option-desc">Tailored for high transaction volumes, business expenses, and continuous operations.</span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="submit"
+                  class="btn-submit"
+                  id="btn-confirm-create"
+                  [disabled]="isCreating"
+                >
+                  @if (isCreating) {
+                    <span>Opening Account...</span>
+                  } @else {
+                    <span>Confirm & Open Account</span>
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  (click)="toggleCreateForm()"
+                  [disabled]="isCreating"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      }
+
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="state-container loading-state">
+          <div class="spinner"></div>
+          <span>Loading your accounts...</span>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (!isLoading && accounts.length === 0) {
+        <div class="state-container empty-state">
+          <div class="empty-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+          </div>
+          <h2 class="empty-title">No Accounts Found</h2>
+          <p class="empty-desc">You do not have any bank accounts opened yet. Open your first account in seconds!</p>
+          <button type="button" class="btn-primary" (click)="toggleCreateForm()">
+            Open Your First Account
+          </button>
+        </div>
+      }
+
+      <!-- Accounts Grid -->
+      @if (!isLoading && accounts.length > 0) {
+        <section class="accounts-grid-section">
+          <div class="accounts-grid">
+            @for (acc of accounts; track acc.id) {
+              <div class="account-item-card" [id]="'account-card-' + acc.id">
+                <div class="account-item-header">
+                  <div class="type-pill" [class.savings-pill]="acc.accountType === 'SAVINGS'" [class.current-pill]="acc.accountType === 'CURRENT'">
+                    {{ acc.accountType }}
+                  </div>
+                  <div class="status-badge" [class.badge-active]="acc.status === 'ACTIVE'" [class.badge-blocked]="acc.status === 'BLOCKED'" [class.badge-closed]="acc.status === 'CLOSED'">
+                    <span class="status-dot"></span>
+                    <span>{{ acc.status }}</span>
+                  </div>
+                </div>
+
+                <div class="account-item-number">
+                  <span class="number-label">Account Number</span>
+                  <span class="number-val">{{ acc.accountNumber }}</span>
+                </div>
+
+                <div class="account-item-balance">
+                  <span class="balance-label">Available Balance</span>
+                  <span class="balance-val">{{ acc.balance | currency:'INR':'symbol':'1.2-2' }}</span>
+                </div>
+
+                <div class="account-item-footer">
+                  @if (acc.createdAt) {
+                    <span class="opened-date">Opened on {{ acc.createdAt | date:'mediumDate' }}</span>
+                  } @else {
+                    <span class="opened-date">Active Account</span>
+                  }
+                  <button type="button" class="btn-card-details" (click)="viewAccountDetails(acc)" [id]="'btn-view-acc-' + acc.id">
+                    View Details &rarr;
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  </main>
+
+  <!-- Account Details Modal -->
+  @if (isLoadingDetails || selectedAccount || detailsError) {
+    <div class="modal-backdrop" id="account-details-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Account Details</h3>
+          <button type="button" class="btn-modal-close" (click)="closeAccountDetails()" id="btn-close-acc-details" aria-label="Close details">&times;</button>
+        </div>
+        <div class="modal-body">
+          @if (isLoadingDetails) {
+            <div class="modal-loading-state" id="modal-acc-loading">
+              <div class="spinner"></div>
+              <span>Fetching account details...</span>
+            </div>
+          } @else if (detailsError) {
+            <div class="modal-error-box" id="modal-acc-error">
+              <span class="error-msg">{{ detailsError }}</span>
+            </div>
+          } @else if (selectedAccount) {
+            <div class="details-spec-grid" id="modal-acc-content">
+              <div class="spec-item">
+                <span class="spec-label">Account Number</span>
+                <span class="spec-value font-mono" id="modal-acc-number">{{ selectedAccount.accountNumber }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Account Type</span>
+                <span class="spec-value" id="modal-acc-type">{{ selectedAccount.accountType }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Available Balance</span>
+                <span class="spec-value font-bold" id="modal-acc-balance">{{ selectedAccount.balance | currency:'INR':'symbol':'1.2-2' }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Status</span>
+                <span class="spec-value" id="modal-acc-status">{{ selectedAccount.status }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Created Date</span>
+                <span class="spec-value" id="modal-acc-date">{{ (selectedAccount.createdAt | date:'medium') || 'Active Account' }}</span>
+              </div>
+              @if (selectedAccount.user) {
+                <div class="spec-item">
+                  <span class="spec-label">Account Holder</span>
+                  <span class="spec-value" id="modal-acc-holder">{{ selectedAccount.user.name }}</span>
+                </div>
+                @if (selectedAccount.user.email) {
+                  <div class="spec-item">
+                    <span class="spec-label">Holder Email</span>
+                    <span class="spec-value font-mono" id="modal-acc-email">{{ selectedAccount.user.email }}</span>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeAccountDetails()" id="btn-back-acc-details">
+            &larr; Back to Accounts
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,381 @@
+<div class="loans-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">Loans</span>
+      </div>
+
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" class="nav-link" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/accounts" class="nav-link" id="nav-accounts">Accounts</a>
+        <a routerLink="/transactions" class="nav-link" id="nav-transactions">Transfers</a>
+        <a routerLink="/beneficiaries" class="nav-link" id="nav-beneficiaries">Beneficiaries</a>
+        <a routerLink="/bill-payments" class="nav-link" id="nav-bill-payments">Bills</a>
+        <a routerLink="/investments" class="nav-link" id="nav-investments">Investments</a>
+        <a routerLink="/audit-logs" class="nav-link" id="nav-audit-logs">Audit Logs</a>
+        <a routerLink="/profile" class="nav-link" id="nav-profile">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (errorMessage) {
+    <div class="alert-error" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="error-text-content">{{ errorMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="alert-success" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span class="success-text-content">{{ successMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss success">&times;</button>
+    </div>
+  }
+
+  <main class="loans-main">
+    <div class="loans-container">
+      <!-- Page Header -->
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">Loan Management</h1>
+          <p class="page-subtitle">Apply for competitive personal, home, vehicle, or education loans with flexible tenures</p>
+        </div>
+        <button
+          type="button"
+          class="btn-primary"
+          id="btn-apply-loan-toggle"
+          (click)="toggleApplyForm()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>{{ showApplyForm ? 'Close Application' : 'Apply for New Loan' }}</span>
+        </button>
+      </section>
+
+      <!-- Metrics Summary -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Total Loan Value</span>
+          <span class="metric-value">{{ totalLoanAmount | currency:'INR':'symbol':'1.0-0' }}</span>
+          <span class="metric-hint">Applied across all loans</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Approved & Active</span>
+          <span class="metric-value">{{ activeLoansCount }}</span>
+          <span class="metric-hint">Current facilities</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Interest Rates From</span>
+          <span class="metric-value">8.5% p.a.</span>
+          <span class="metric-hint">Home loan starting rate</span>
+        </div>
+      </section>
+
+      <!-- Apply Loan Form -->
+      @if (showApplyForm) {
+        <section class="apply-loan-section" id="apply-loan-card">
+          <div class="apply-card">
+            <div class="apply-card-header">
+              <h2 class="apply-title">Loan Application Form</h2>
+              <p class="apply-subtitle">Select loan purpose, enter required amount and repayment duration.</p>
+            </div>
+
+            <!-- Loan Type Selector Grid -->
+            <div class="loan-types-grid">
+              @for (lt of loanTypes; track lt.type) {
+                <button
+                  type="button"
+                  class="type-selector-card"
+                  [class.selected]="loanType?.value === lt.type"
+                  [id]="'type-btn-' + lt.type"
+                  (click)="selectLoanType(lt.type)"
+                >
+                  <div class="type-selector-header">
+                    <span class="type-name">{{ lt.title }}</span>
+                    <span class="type-rate">{{ lt.rate }}% p.a.</span>
+                  </div>
+                  <p class="type-desc">{{ lt.description }}</p>
+                </button>
+              }
+            </div>
+
+            <form [formGroup]="loanForm" (ngSubmit)="onSubmitApply()" class="apply-form" id="loan-application-form">
+              <div class="form-grid">
+                <!-- Loan Type Dropdown (synced with cards) -->
+                <div class="form-group">
+                  <label for="loan-type" class="form-label">Loan Type *</label>
+                  <select
+                    id="loan-type"
+                    formControlName="loanType"
+                    class="form-select"
+                    [class.input-error]="loanType?.invalid && loanType?.touched"
+                  >
+                    @for (lt of loanTypes; track lt.type) {
+                      <option [value]="lt.type">{{ lt.title }} ({{ lt.rate }}% p.a.)</option>
+                    }
+                  </select>
+                </div>
+
+                <!-- Loan Amount -->
+                <div class="form-group">
+                  <label for="loan-amount" class="form-label">Loan Amount (₹) *</label>
+                  <input
+                    type="number"
+                    id="loan-amount"
+                    formControlName="amount"
+                    class="form-input font-numeric"
+                    placeholder="e.g. 500000"
+                    min="1000"
+                    step="1000"
+                    [class.input-error]="amount?.invalid && amount?.touched"
+                  />
+                  @if (amount?.invalid && amount?.touched) {
+                    <span class="error-hint" id="error-amount">Loan amount must be at least ₹1,000.</span>
+                  }
+                </div>
+
+                <!-- Tenure Months -->
+                <div class="form-group">
+                  <label for="loan-tenure" class="form-label">Tenure (Months) *</label>
+                  <input
+                    type="number"
+                    id="loan-tenure"
+                    formControlName="tenureMonths"
+                    class="form-input font-numeric"
+                    placeholder="e.g. 36 (3 years)"
+                    min="1"
+                    max="360"
+                    [class.input-error]="tenureMonths?.invalid && tenureMonths?.touched"
+                  />
+                  @if (tenureMonths?.invalid && tenureMonths?.touched) {
+                    <span class="error-hint" id="error-tenure">Tenure must be between 1 and 360 months.</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Interest Summary Banner -->
+              @if (selectedLoanTypeDetails) {
+                <div class="rate-preview-banner">
+                  <span class="preview-title">Applicable Interest Rate:</span>
+                  <strong class="preview-rate">{{ selectedLoanTypeDetails.rate }}% p.a.</strong>
+                  <span class="preview-note">(Calculated automatically by BankEase backend upon submission)</span>
+                </div>
+              }
+
+              <div class="form-actions">
+                <button
+                  type="submit"
+                  class="btn-submit"
+                  id="btn-submit-loan"
+                  [disabled]="isSubmitting"
+                >
+                  @if (isSubmitting) {
+                    <span class="btn-spinner"></span>
+                    <span>Submitting Application...</span>
+                  } @else {
+                    <span>Submit Loan Application</span>
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  id="btn-cancel-loan"
+                  (click)="toggleApplyForm()"
+                  [disabled]="isSubmitting"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      }
+
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="state-container loading-state">
+          <div class="spinner"></div>
+          <span>Loading your loan applications...</span>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (!isLoading && loans.length === 0) {
+        <div class="state-container empty-state">
+          <div class="empty-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+          </div>
+          <h2 class="empty-title">No Loans Found</h2>
+          <p class="empty-desc">You do not have any active or past loan applications. Apply for a loan today with fast automated approval.</p>
+          <button type="button" class="btn-primary" (click)="toggleApplyForm()" id="btn-empty-apply-loan">
+            Apply for Your First Loan
+          </button>
+        </div>
+      }
+
+      <!-- Loans Grid -->
+      @if (!isLoading && loans.length > 0) {
+        <section class="loans-grid-section">
+          <div class="loans-grid">
+            @for (loan of loans; track loan.id) {
+              <div class="loan-item-card" [id]="'loan-card-' + loan.id">
+                <div class="loan-card-header">
+                  <div class="loan-type-pill" [ngClass]="'pill-' + loan.loanType.toLowerCase()">
+                    {{ loan.loanType }} LOAN
+                  </div>
+                  <div class="status-badge" [ngClass]="'status-' + loan.status.toLowerCase()">
+                    <span class="status-dot"></span>
+                    <span>{{ loan.status }}</span>
+                  </div>
+                </div>
+
+                <div class="loan-id-row">
+                  <span class="loan-id-label">Application ID</span>
+                  <span class="loan-id-value font-mono">{{ loan.loanId }}</span>
+                </div>
+
+                <div class="loan-amount-row">
+                  <span class="amount-label">Principal Amount</span>
+                  <span class="amount-value font-numeric">{{ loan.amount | currency:'INR':'symbol':'1.0-0' }}</span>
+                </div>
+
+                <div class="loan-meta-grid">
+                  <div class="meta-item">
+                    <span class="meta-label">Interest Rate</span>
+                    <span class="meta-value">{{ loan.interestRate }}% p.a.</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Tenure</span>
+                    <span class="meta-value">{{ loan.tenureMonths }} Months</span>
+                  </div>
+                </div>
+
+                @if (loan.applicationDate) {
+                  <div class="loan-date-row">
+                    <span class="date-label">Applied On:</span>
+                    <span class="date-value">{{ loan.applicationDate | date:'mediumDate' }}</span>
+                  </div>
+                }
+
+                @if (loan.remarks) {
+                  <div class="loan-remarks-box">
+                    <span class="remarks-label">Remarks:</span>
+                    <p class="remarks-text">{{ loan.remarks }}</p>
+                  </div>
+                }
+
+                <div class="loan-card-footer">
+                  <button
+                    type="button"
+                    class="btn-view-details"
+                    [id]="'btn-view-loan-' + loan.id"
+                    (click)="viewLoanDetails(loan)"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Loan Details Modal -->
+      @if (selectedLoanDetails) {
+        <div class="modal-backdrop" (click)="closeDetailsModal()">
+          <div class="modal-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h2 class="modal-title">Loan Application Details</h2>
+              <button type="button" class="btn-modal-close" (click)="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div class="detail-grid">
+                <div class="detail-cell">
+                  <span class="cell-label">Loan ID</span>
+                  <span class="cell-value font-mono">{{ selectedLoanDetails.loanId }}</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Status</span>
+                  <span class="cell-value">
+                    <span class="status-badge" [ngClass]="'status-' + selectedLoanDetails.status.toLowerCase()">
+                      {{ selectedLoanDetails.status }}
+                    </span>
+                  </span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Loan Type</span>
+                  <span class="cell-value">{{ selectedLoanDetails.loanType }}</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Principal Amount</span>
+                  <span class="cell-value font-numeric">{{ selectedLoanDetails.amount | currency:'INR':'symbol':'1.2-2' }}</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Interest Rate</span>
+                  <span class="cell-value">{{ selectedLoanDetails.interestRate }}% per annum</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Tenure Duration</span>
+                  <span class="cell-value">{{ selectedLoanDetails.tenureMonths }} Months ({{ (selectedLoanDetails.tenureMonths / 12) | number:'1.1-1' }} Years)</span>
+                </div>
+                @if (selectedLoanDetails.applicationDate) {
+                  <div class="detail-cell">
+                    <span class="cell-label">Application Date</span>
+                    <span class="cell-value">{{ selectedLoanDetails.applicationDate | date:'medium' }}</span>
+                  </div>
+                }
+                @if (selectedLoanDetails.remarks) {
+                  <div class="detail-cell full-width">
+                    <span class="cell-label">Bank Remarks</span>
+                    <span class="cell-value">{{ selectedLoanDetails.remarks }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-primary" (click)="closeDetailsModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+</div>

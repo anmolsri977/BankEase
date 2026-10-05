@@ -1,0 +1,349 @@
+<div class="transactions-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+        </div>
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">Transfers</span>
+      </div>
+
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/accounts" class="nav-link">Accounts</a>
+        <a routerLink="/beneficiaries" class="nav-link" id="nav-beneficiaries">Beneficiaries</a>
+        <a routerLink="/bill-payments" class="nav-link" id="nav-bill-payments">Bills</a>
+        <a routerLink="/loans" class="nav-link" id="nav-loans">Loans</a>
+        <a routerLink="/investments" class="nav-link" id="nav-investments">Investments</a>
+        <a routerLink="/audit-logs" class="nav-link" id="nav-audit-logs">Audit Logs</a>
+        <a routerLink="/profile" class="nav-link" id="nav-profile">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (errorMessage) {
+    <div class="alert-error" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="alert-msg">{{ errorMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="alert-success" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span class="alert-msg">{{ successMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss success">&times;</button>
+    </div>
+  }
+
+  <main class="transactions-main">
+    <div class="transactions-container">
+      <!-- Page Header -->
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">Fund Transfer & Transactions</h1>
+          <p class="page-subtitle">Send money instantly between BankEase accounts and view your full transaction history</p>
+        </div>
+      </section>
+
+      <div class="transactions-grid-columns">
+        <!-- Transfer Money Form -->
+        <section class="transfer-card">
+          <div class="card-header">
+            <div class="header-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </div>
+            <div>
+              <h2 class="card-title">Transfer Money</h2>
+              <p class="card-subtitle">Instant internal bank fund transfer</p>
+            </div>
+          </div>
+
+          <form [formGroup]="transferForm" (ngSubmit)="onSubmitTransfer()" class="transfer-form" novalidate>
+            <!-- Sender Account Selection -->
+            <div class="form-group">
+              <label for="senderAccount" class="form-label">From Account</label>
+              @if (userAccounts.length > 0) {
+                <select id="senderAccount" formControlName="senderAccountNumber" class="form-input">
+                  @for (acc of userAccounts; track acc.id) {
+                    <option [value]="acc.accountNumber">
+                      {{ acc.accountNumber }} - {{ acc.accountType }} ({{ acc.balance | currency:'INR':'symbol':'1.2-2' }})
+                    </option>
+                  }
+                </select>
+              } @else {
+                <input
+                  id="senderAccount"
+                  type="text"
+                  formControlName="senderAccountNumber"
+                  placeholder="Enter your 12-digit account number"
+                  class="form-input"
+                  [class.input-error]="senderAccountNumber?.invalid && (senderAccountNumber?.dirty || senderAccountNumber?.touched)"
+                />
+              }
+              @if (senderAccountNumber?.invalid && (senderAccountNumber?.dirty || senderAccountNumber?.touched)) {
+                <div class="error-text">Sender account number is required.</div>
+              }
+            </div>
+
+            <!-- Receiver Account -->
+            <div class="form-group">
+              <label for="receiverAccount" class="form-label">To Account (Beneficiary)</label>
+              <input
+                id="receiverAccount"
+                type="text"
+                formControlName="receiverAccountNumber"
+                placeholder="Enter recipient's account number"
+                class="form-input"
+                [class.input-error]="receiverAccountNumber?.invalid && (receiverAccountNumber?.dirty || receiverAccountNumber?.touched)"
+              />
+              @if (receiverAccountNumber?.invalid && (receiverAccountNumber?.dirty || receiverAccountNumber?.touched)) {
+                <div class="error-text">
+                  @if (receiverAccountNumber?.errors?.['required']) {
+                    <span>Recipient account number is required.</span>
+                  } @else if (receiverAccountNumber?.errors?.['minlength']) {
+                    <span>Account number must be at least 4 digits.</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+              <label for="amount" class="form-label">Amount (₹)</label>
+              <input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="1"
+                formControlName="amount"
+                placeholder="e.g. 5000.00"
+                class="form-input"
+                [class.input-error]="amount?.invalid && (amount?.dirty || amount?.touched)"
+              />
+              @if (amount?.invalid && (amount?.dirty || amount?.touched)) {
+                <div class="error-text">
+                  @if (amount?.errors?.['required']) {
+                    <span>Amount is required.</span>
+                  } @else if (amount?.errors?.['min']) {
+                    <span>Amount must be at least ₹1.00.</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Description / Remarks -->
+            <div class="form-group">
+              <label for="description" class="form-label">Description (Optional)</label>
+              <input
+                id="description"
+                type="text"
+                formControlName="description"
+                placeholder="e.g. Rent, Gift, Monthly savings"
+                class="form-input"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="btn-submit-transfer"
+              id="btn-submit-transfer"
+              [disabled]="isSubmitting || transferForm.invalid"
+            >
+              @if (isSubmitting) {
+                <span>Transferring Funds...</span>
+              } @else {
+                <span>Send Money Now</span>
+              }
+            </button>
+          </form>
+        </section>
+
+        <!-- Transaction History -->
+        <section class="history-card">
+          <div class="card-header history-header">
+            <div>
+              <h2 class="card-title">Transaction History</h2>
+              <p class="card-subtitle">{{ transactions.length }} Recorded Transactions</p>
+            </div>
+            <button type="button" class="btn-refresh" (click)="loadTransactions()" title="Refresh Transactions">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Loading State -->
+          @if (isLoading) {
+            <div class="state-container loading-state">
+              <div class="spinner"></div>
+              <span>Fetching transaction history...</span>
+            </div>
+          }
+
+          <!-- Empty State -->
+          @if (!isLoading && transactions.length === 0) {
+            <div class="state-container empty-state">
+              <div class="empty-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="1" x2="12" y2="23"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </div>
+              <h3 class="empty-title">No Transactions Yet</h3>
+              <p class="empty-desc">Your transaction history is empty. Make your first transfer to see it recorded here.</p>
+            </div>
+          }
+
+          <!-- Transactions List -->
+          @if (!isLoading && transactions.length > 0) {
+            <div class="transaction-history-list">
+              @for (txn of transactions; track txn.id) {
+                <div class="txn-item-card" [id]="'txn-item-' + txn.id">
+                  <div class="txn-top">
+                    <div class="txn-id-group">
+                      <span class="txn-id">{{ txn.transactionId }}</span>
+                      <span class="txn-type-badge">{{ txn.transactionType }}</span>
+                    </div>
+                    <span
+                      class="txn-amount"
+                      [class.amount-debit]="isDebit(txn)"
+                      [class.amount-credit]="!isDebit(txn)"
+                    >
+                      {{ isDebit(txn) ? '-' : '+' }}{{ txn.amount | currency:'INR':'symbol':'1.2-2' }}
+                    </span>
+                  </div>
+
+                  <div class="txn-accounts-row">
+                    <div class="account-flow">
+                      <span class="flow-label">From:</span>
+                      <span class="flow-val">{{ txn.senderAccount?.accountNumber || 'N/A' }}</span>
+                      <span class="flow-arrow">&rarr;</span>
+                      <span class="flow-label">To:</span>
+                      <span class="flow-val">{{ txn.receiverAccount?.accountNumber || 'N/A' }}</span>
+                    </div>
+                    <span class="txn-status-badge">{{ txn.status }}</span>
+                  </div>
+
+                  <div class="txn-bottom">
+                    @if (txn.description) {
+                      <span class="txn-desc">{{ txn.description }}</span>
+                    } @else {
+                      <span class="txn-desc text-muted">No description provided</span>
+                    }
+                    <div class="txn-bottom-actions">
+                      <span class="txn-date">{{ (txn.transactionDate || txn.createdAt) | date:'medium' }}</span>
+                      <button type="button" class="btn-txn-details" (click)="viewTransactionDetails(txn)" [id]="'btn-view-txn-' + txn.id">
+                        View Details &rarr;
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- Transaction Details Modal -->
+  @if (isLoadingDetails || selectedTransaction || detailsError) {
+    <div class="modal-backdrop" id="transaction-details-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Transaction Details</h3>
+          <button type="button" class="btn-modal-close" (click)="closeTransactionDetails()" id="btn-close-txn-details" aria-label="Close details">&times;</button>
+        </div>
+        <div class="modal-body">
+          @if (isLoadingDetails) {
+            <div class="modal-loading-state" id="modal-txn-loading">
+              <div class="spinner"></div>
+              <span>Fetching transaction details...</span>
+            </div>
+          } @else if (detailsError) {
+            <div class="modal-error-box" id="modal-txn-error">
+              <span class="error-msg">{{ detailsError }}</span>
+            </div>
+          } @else if (selectedTransaction) {
+            <div class="details-spec-grid" id="modal-txn-content">
+              <div class="spec-item">
+                <span class="spec-label">Transaction ID</span>
+                <span class="spec-value font-mono" id="modal-txn-id">{{ selectedTransaction.transactionId }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Transaction Type</span>
+                <span class="spec-value" id="modal-txn-type">{{ selectedTransaction.transactionType }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Amount</span>
+                <span
+                  class="spec-value font-bold"
+                  [class.amount-debit]="isDebit(selectedTransaction)"
+                  [class.amount-credit]="!isDebit(selectedTransaction)"
+                  id="modal-txn-amount"
+                >
+                  {{ isDebit(selectedTransaction) ? '-' : '+' }}{{ selectedTransaction.amount | currency:'INR':'symbol':'1.2-2' }}
+                </span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Status</span>
+                <span class="spec-value" id="modal-txn-status">{{ selectedTransaction.status }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Sender Account</span>
+                <span class="spec-value font-mono" id="modal-txn-sender">{{ selectedTransaction.senderAccount?.accountNumber || 'N/A' }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Receiver Account</span>
+                <span class="spec-value font-mono" id="modal-txn-receiver">{{ selectedTransaction.receiverAccount?.accountNumber || 'N/A' }}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Date & Time</span>
+                <span class="spec-value" id="modal-txn-date">{{ (selectedTransaction.transactionDate || selectedTransaction.createdAt) | date:'medium' }}</span>
+              </div>
+              <div class="spec-item full-width">
+                <span class="spec-label">Description</span>
+                <span class="spec-value" id="modal-txn-desc">{{ selectedTransaction.description || 'No description provided' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeTransactionDetails()" id="btn-back-txn-details">
+            &larr; Back to Transfers
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

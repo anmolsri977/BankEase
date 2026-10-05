@@ -1,0 +1,375 @@
+<div class="bill-payments-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <line x1="6" y1="8" x2="18" y2="8"></line>
+            <line x1="6" y1="12" x2="14" y2="12"></line>
+            <line x1="6" y1="16" x2="10" y2="16"></line>
+          </svg>
+        </div>
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">Bill Payments</span>
+      </div>
+
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" class="nav-link" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/accounts" class="nav-link" id="nav-accounts">Accounts</a>
+        <a routerLink="/transactions" class="nav-link" id="nav-transactions">Transfers</a>
+        <a routerLink="/beneficiaries" class="nav-link" id="nav-beneficiaries">Beneficiaries</a>
+        <a routerLink="/loans" class="nav-link" id="nav-loans">Loans</a>
+        <a routerLink="/investments" class="nav-link" id="nav-investments">Investments</a>
+        <a routerLink="/audit-logs" class="nav-link" id="nav-audit-logs">Audit Logs</a>
+        <a routerLink="/profile" class="nav-link" id="nav-profile">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (errorMessage) {
+    <div class="alert-error" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="error-text-content">{{ errorMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="alert-success" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span class="success-text-content">{{ successMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss success">&times;</button>
+    </div>
+  }
+
+  <main class="bill-payments-main">
+    <div class="bill-payments-container">
+      <!-- Page Header -->
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">Utility & Bill Payments</h1>
+          <p class="page-subtitle">Pay your electricity, water, broadband, and mobile bills instantly with zero convenience charges</p>
+        </div>
+      </section>
+
+      <!-- Metrics Summary -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Total Bills Paid</span>
+          <span class="metric-value">{{ totalPaidAmount | currency:'INR':'symbol':'1.2-2' }}</span>
+          <span class="metric-hint">Across all utilities</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Completed Payments</span>
+          <span class="metric-value">{{ successfulPaymentsCount }}</span>
+          <span class="metric-hint">Instant settlement</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Supported Categories</span>
+          <span class="metric-value">4 Utilities</span>
+          <span class="metric-hint">Power, Water, Mobile, Net</span>
+        </div>
+      </section>
+
+      <!-- Pay Bill Card Form -->
+      <section class="pay-bill-section" id="pay-bill-card">
+        <div class="bill-card">
+          <div class="bill-card-header">
+            <h2 class="bill-title">Pay a New Utility Bill</h2>
+            <p class="bill-subtitle">Select the utility category, specify your consumer or account number, and confirm debit.</p>
+          </div>
+
+          <!-- Utility Category Quick Selectors -->
+          <div class="category-selectors">
+            @for (cat of supportedBillTypes; track cat.id) {
+              <button
+                type="button"
+                class="category-btn"
+                [class.selected]="billType?.value === cat.id"
+                [id]="'cat-btn-' + cat.id"
+                (click)="selectBillType(cat.id)"
+              >
+                <div class="category-icon-wrapper" [ngClass]="'cat-' + cat.id.toLowerCase()">
+                  @if (cat.id === 'ELECTRICITY') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  } @else if (cat.id === 'WATER') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                    </svg>
+                  } @else if (cat.id === 'MOBILE') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                      <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                  } @else if (cat.id === 'INTERNET') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                      <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                      <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                    </svg>
+                  }
+                </div>
+                <span class="category-label">{{ cat.label }}</span>
+              </button>
+            }
+          </div>
+
+          <form [formGroup]="paymentForm" (ngSubmit)="onSubmitPayment()" class="bill-form" id="bill-payment-form">
+            <div class="form-grid">
+              <!-- Debit From Account -->
+              <div class="form-group">
+                <label for="bill-account-number" class="form-label">Debit Account Number *</label>
+                @if (userAccounts.length > 0) {
+                  <select
+                    id="bill-account-number"
+                    formControlName="accountNumber"
+                    class="form-select"
+                    [class.input-error]="accountNumber?.invalid && accountNumber?.touched"
+                  >
+                    <option value="" disabled>-- Select Your Account --</option>
+                    @for (acc of userAccounts; track acc.id) {
+                      <option [value]="acc.accountNumber">
+                        {{ acc.accountNumber }} ({{ acc.accountType }}) - {{ acc.balance | currency:'INR':'symbol':'1.0-0' }}
+                      </option>
+                    }
+                  </select>
+                } @else {
+                  <input
+                    type="text"
+                    id="bill-account-number"
+                    formControlName="accountNumber"
+                    class="form-input"
+                    placeholder="Enter your account number"
+                    [class.input-error]="accountNumber?.invalid && accountNumber?.touched"
+                  />
+                }
+                @if (accountNumber?.invalid && accountNumber?.touched) {
+                  <span class="error-hint" id="error-account-number">Debit account number is required.</span>
+                }
+              </div>
+
+              <!-- Bill Type / Category -->
+              <div class="form-group">
+                <label for="bill-type" class="form-label">Bill Category *</label>
+                <select
+                  id="bill-type"
+                  formControlName="billType"
+                  class="form-select"
+                  [class.input-error]="billType?.invalid && billType?.touched"
+                >
+                  <option value="ELECTRICITY">Electricity</option>
+                  <option value="WATER">Water</option>
+                  <option value="MOBILE">Mobile</option>
+                  <option value="INTERNET">Internet</option>
+                </select>
+                @if (billType?.invalid && billType?.touched) {
+                  <span class="error-hint" id="error-bill-type">Valid bill category is required.</span>
+                }
+              </div>
+
+              <!-- Biller Name -->
+              <div class="form-group">
+                <label for="bill-biller-name" class="form-label">Biller Name / Provider *</label>
+                <input
+                  type="text"
+                  id="bill-biller-name"
+                  formControlName="billerName"
+                  class="form-input"
+                  placeholder="e.g. Tata Power / Airtel / Adani Electricity"
+                  [class.input-error]="billerName?.invalid && billerName?.touched"
+                />
+                @if (billerName?.invalid && billerName?.touched) {
+                  <span class="error-hint" id="error-biller-name">Biller name is required (min 2 characters).</span>
+                }
+              </div>
+
+              <!-- Bill Number / Consumer ID -->
+              <div class="form-group">
+                <label for="bill-number" class="form-label">Bill / Consumer Number *</label>
+                <input
+                  type="text"
+                  id="bill-number"
+                  formControlName="billNumber"
+                  class="form-input"
+                  placeholder="e.g. Cons No. / Phone / Ref ID"
+                  [class.input-error]="billNumber?.invalid && billNumber?.touched"
+                />
+                @if (billNumber?.invalid && billNumber?.touched) {
+                  <span class="error-hint" id="error-bill-number">Bill number or consumer ID is required.</span>
+                }
+              </div>
+
+              <!-- Amount -->
+              <div class="form-group">
+                <label for="bill-amount" class="form-label">Amount (₹) *</label>
+                <input
+                  type="number"
+                  id="bill-amount"
+                  formControlName="amount"
+                  class="form-input font-numeric"
+                  placeholder="e.g. 1450"
+                  min="1"
+                  step="any"
+                  [class.input-error]="amount?.invalid && amount?.touched"
+                />
+                @if (amount?.invalid && amount?.touched) {
+                  <span class="error-hint" id="error-amount">Payment amount must be greater than zero.</span>
+                }
+              </div>
+
+              <!-- Description / Notes -->
+              <div class="form-group">
+                <label for="bill-description" class="form-label">Description / Remarks (Optional)</label>
+                <input
+                  type="text"
+                  id="bill-description"
+                  formControlName="description"
+                  class="form-input"
+                  placeholder="e.g. Home Electricity March 2026"
+                />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="submit"
+                class="btn-submit"
+                id="btn-submit-bill-payment"
+                [disabled]="isSubmitting"
+              >
+                @if (isSubmitting) {
+                  <span class="btn-spinner"></span>
+                  <span>Processing Payment...</span>
+                } @else {
+                  <span>Confirm & Pay Bill</span>
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Payment History Section -->
+      <section class="history-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Bill Payment History</h2>
+            <span class="section-hint">Past utility transactions and references</span>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        @if (isLoading) {
+          <div class="state-container loading-state">
+            <div class="spinner"></div>
+            <span>Loading bill payment records...</span>
+          </div>
+        }
+
+        <!-- Empty State -->
+        @if (!isLoading && billPayments.length === 0) {
+          <div class="state-container empty-state">
+            <div class="empty-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <line x1="6" y1="8" x2="18" y2="8"></line>
+                <line x1="6" y1="12" x2="14" y2="12"></line>
+                <line x1="6" y1="16" x2="10" y2="16"></line>
+              </svg>
+            </div>
+            <h3 class="empty-title">No Bill Payments Found</h3>
+            <p class="empty-desc">You have not paid any utility bills yet. Use the form above to make your first bill payment securely.</p>
+          </div>
+        }
+
+        <!-- History Table / Cards -->
+        @if (!isLoading && billPayments.length > 0) {
+          <div class="history-card">
+            <div class="table-responsive">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Payment ID</th>
+                    <th>Category</th>
+                    <th>Biller & Consumer ID</th>
+                    <th>Account</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th class="text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of billPayments; track p.id) {
+                    <tr class="history-row" [id]="'bill-row-' + p.id">
+                      <td>
+                        <span class="payment-id-badge font-mono">{{ p.paymentId }}</span>
+                      </td>
+                      <td>
+                        <span class="type-pill" [ngClass]="'pill-' + p.billType.toLowerCase()">
+                          {{ p.billType }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="biller-info">
+                          <strong class="biller-name">{{ p.billerName }}</strong>
+                          <span class="bill-num font-mono">ID: {{ p.billNumber }}</span>
+                          @if (p.description) {
+                            <span class="bill-desc">{{ p.description }}</span>
+                          }
+                        </div>
+                      </td>
+                      <td>
+                        <span class="acc-num font-mono">
+                          {{ p.account?.accountNumber || '-' }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="date-text">
+                          {{ (p.paymentDate || p.createdAt) | date:'mediumDate' }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="status-badge status-success">
+                          <span class="status-dot"></span>
+                          <span>{{ p.status }}</span>
+                        </span>
+                      </td>
+                      <td class="text-right">
+                        <span class="amount-val font-numeric">
+                          {{ p.amount | currency:'INR':'symbol':'1.2-2' }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </section>
+    </div>
+  </main>
+</div>

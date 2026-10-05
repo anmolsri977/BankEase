@@ -1,0 +1,381 @@
+<div class="investments-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            <polyline points="17 6 23 6 23 12"></polyline>
+          </svg>
+        </div>
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">Investments</span>
+      </div>
+
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" class="nav-link" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/accounts" class="nav-link" id="nav-accounts">Accounts</a>
+        <a routerLink="/transactions" class="nav-link" id="nav-transactions">Transfers</a>
+        <a routerLink="/beneficiaries" class="nav-link" id="nav-beneficiaries">Beneficiaries</a>
+        <a routerLink="/bill-payments" class="nav-link" id="nav-bill-payments">Bills</a>
+        <a routerLink="/loans" class="nav-link" id="nav-loans">Loans</a>
+        <a routerLink="/audit-logs" class="nav-link" id="nav-audit-logs">Audit Logs</a>
+        <a routerLink="/profile" class="nav-link" id="nav-profile">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (errorMessage) {
+    <div class="alert-error" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="error-text-content">{{ errorMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss error">&times;</button>
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="alert-success" role="alert">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span class="success-text-content">{{ successMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss success">&times;</button>
+    </div>
+  }
+
+  <main class="investments-main">
+    <div class="investments-container">
+      <!-- Page Header -->
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">Investment Portfolio</h1>
+          <p class="page-subtitle">Grow your wealth with high-yield Fixed Deposits, Mutual Funds, and Equities</p>
+        </div>
+        <button
+          type="button"
+          class="btn-primary"
+          id="btn-create-investment-toggle"
+          (click)="toggleCreateForm()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>{{ showCreateForm ? 'Close Form' : 'Start New Investment' }}</span>
+        </button>
+      </section>
+
+      <!-- Metrics Summary -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Total Portfolio Value</span>
+          <span class="metric-value">{{ totalPortfolioValue | currency:'INR':'symbol':'1.0-0' }}</span>
+          <span class="metric-hint">Across all asset classes</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Projected Returns</span>
+          <span class="metric-value text-green">{{ totalExpectedReturns | currency:'INR':'symbol':'1.0-0' }}</span>
+          <span class="metric-hint">Calculated maturity returns</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Active Investments</span>
+          <span class="metric-value">{{ activeInvestmentsCount }}</span>
+          <span class="metric-hint">Maturity tracked</span>
+        </div>
+      </section>
+
+      <!-- Create Investment Form -->
+      @if (showCreateForm) {
+        <section class="create-investment-section" id="create-investment-card">
+          <div class="create-card">
+            <div class="create-card-header">
+              <h2 class="create-title">Start a New Investment</h2>
+              <p class="create-subtitle">Choose from Fixed Deposits, Recurring Deposits, Mutual Funds, or Equity Stocks.</p>
+            </div>
+
+            <!-- Product Selectors -->
+            <div class="products-grid">
+              @for (prod of products; track prod.type) {
+                <button
+                  type="button"
+                  class="product-card-btn"
+                  [class.selected]="investmentType?.value === prod.type"
+                  [id]="'prod-btn-' + prod.type"
+                  (click)="selectProductType(prod.type)"
+                >
+                  <div class="product-top">
+                    <span class="product-title">{{ prod.title }}</span>
+                    <span class="product-rate">{{ prod.annualRate }}% p.a.</span>
+                  </div>
+                  <p class="product-desc">{{ prod.description }}</p>
+                  <div class="product-footer">
+                    <span class="risk-tag" [ngClass]="'risk-' + prod.risk.toLowerCase()">Risk: {{ prod.risk }}</span>
+                  </div>
+                </button>
+              }
+            </div>
+
+            <form [formGroup]="investmentForm" (ngSubmit)="onSubmitCreate()" class="create-form" id="investment-form">
+              <div class="form-grid">
+                <!-- Investment Type Dropdown -->
+                <div class="form-group">
+                  <label for="investment-type" class="form-label">Asset Class *</label>
+                  <select
+                    id="investment-type"
+                    formControlName="investmentType"
+                    class="form-select"
+                    [class.input-error]="investmentType?.invalid && investmentType?.touched"
+                  >
+                    @for (prod of products; track prod.type) {
+                      <option [value]="prod.type">{{ prod.title }} (~{{ prod.annualRate }}% p.a.)</option>
+                    }
+                  </select>
+                </div>
+
+                <!-- Principal Amount -->
+                <div class="form-group">
+                  <label for="investment-amount" class="form-label">Investment Amount (₹) *</label>
+                  <input
+                    type="number"
+                    id="investment-amount"
+                    formControlName="amount"
+                    class="form-input font-numeric"
+                    placeholder="e.g. 50000"
+                    min="100"
+                    step="100"
+                    [class.input-error]="amount?.invalid && amount?.touched"
+                  />
+                  @if (amount?.invalid && amount?.touched) {
+                    <span class="error-hint" id="error-investment-amount">Minimum investment amount is ₹100.</span>
+                  }
+                </div>
+
+                <!-- Tenure Months -->
+                <div class="form-group">
+                  <label for="investment-tenure" class="form-label">Tenure (Months) *</label>
+                  <input
+                    type="number"
+                    id="investment-tenure"
+                    formControlName="tenureMonths"
+                    class="form-input font-numeric"
+                    placeholder="e.g. 12 (1 year)"
+                    min="1"
+                    max="360"
+                    [class.input-error]="tenureMonths?.invalid && tenureMonths?.touched"
+                  />
+                  @if (tenureMonths?.invalid && tenureMonths?.touched) {
+                    <span class="error-hint" id="error-investment-tenure">Tenure must be between 1 and 360 months.</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Estimated Returns Box -->
+              @if (estimatedReturnsPreview > 0) {
+                <div class="returns-preview-box">
+                  <div class="returns-info">
+                    <span class="preview-label">Estimated Returns at Maturity:</span>
+                    <strong class="preview-val font-numeric">{{ estimatedReturnsPreview | currency:'INR':'symbol':'1.2-2' }}</strong>
+                  </div>
+                  <div class="maturity-total">
+                    <span class="total-label">Projected Total:</span>
+                    <strong class="total-val font-numeric">
+                      {{ (amount?.value + estimatedReturnsPreview) | currency:'INR':'symbol':'1.2-2' }}
+                    </strong>
+                  </div>
+                </div>
+              }
+
+              <div class="form-actions">
+                <button
+                  type="submit"
+                  class="btn-submit"
+                  id="btn-submit-investment"
+                  [disabled]="isSubmitting"
+                >
+                  @if (isSubmitting) {
+                    <span class="btn-spinner"></span>
+                    <span>Creating Investment...</span>
+                  } @else {
+                    <span>Confirm & Invest</span>
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  id="btn-cancel-investment"
+                  (click)="toggleCreateForm()"
+                  [disabled]="isSubmitting"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      }
+
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="state-container loading-state">
+          <div class="spinner"></div>
+          <span>Loading your investment portfolio...</span>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (!isLoading && investments.length === 0) {
+        <div class="state-container empty-state">
+          <div class="empty-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+          </div>
+          <h2 class="empty-title">No Investments Found</h2>
+          <p class="empty-desc">You haven't made any investments yet. Start growing your financial future today with high-interest deposits and market funds.</p>
+          <button type="button" class="btn-primary" (click)="toggleCreateForm()" id="btn-empty-create-investment">
+            Create Your First Investment
+          </button>
+        </div>
+      }
+
+      <!-- Investments Grid -->
+      @if (!isLoading && investments.length > 0) {
+        <section class="investments-grid-section">
+          <div class="investments-grid">
+            @for (inv of investments; track inv.id) {
+              <div class="investment-item-card" [id]="'investment-card-' + inv.id">
+                <div class="inv-card-header">
+                  <div class="inv-type-pill" [ngClass]="'pill-' + inv.investmentType.toLowerCase()">
+                    {{ inv.investmentType }}
+                  </div>
+                  <div class="status-badge" [ngClass]="'status-' + inv.status.toLowerCase()">
+                    <span class="status-dot"></span>
+                    <span>{{ inv.status }}</span>
+                  </div>
+                </div>
+
+                <div class="inv-id-row">
+                  <span class="inv-id-label">Investment ID</span>
+                  <span class="inv-id-value font-mono">{{ inv.investmentId }}</span>
+                </div>
+
+                <div class="inv-amount-row">
+                  <span class="amount-label">Principal Invested</span>
+                  <span class="amount-value font-numeric">{{ inv.amount | currency:'INR':'symbol':'1.0-0' }}</span>
+                </div>
+
+                <div class="inv-meta-grid">
+                  <div class="meta-item">
+                    <span class="meta-label">Maturity Returns</span>
+                    <span class="meta-value text-green font-numeric">{{ inv.returns | currency:'INR':'symbol':'1.2-2' }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Maturity Date</span>
+                    <span class="meta-value">{{ inv.maturityDate | date:'mediumDate' }}</span>
+                  </div>
+                </div>
+
+                @if (inv.investmentDate) {
+                  <div class="inv-date-row">
+                    <span class="date-label">Invested On:</span>
+                    <span class="date-value">{{ inv.investmentDate | date:'mediumDate' }}</span>
+                  </div>
+                }
+
+                <div class="inv-card-footer">
+                  <button
+                    type="button"
+                    class="btn-view-details"
+                    [id]="'btn-view-investment-' + inv.id"
+                    (click)="viewInvestmentDetails(inv)"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Investment Details Modal -->
+      @if (selectedInvestmentDetails) {
+        <div class="modal-backdrop" (click)="closeDetailsModal()">
+          <div class="modal-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h2 class="modal-title">Investment Certificate Details</h2>
+              <button type="button" class="btn-modal-close" (click)="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div class="detail-grid">
+                <div class="detail-cell">
+                  <span class="cell-label">Investment ID</span>
+                  <span class="cell-value font-mono">{{ selectedInvestmentDetails.investmentId }}</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Status</span>
+                  <span class="cell-value">
+                    <span class="status-badge" [ngClass]="'status-' + selectedInvestmentDetails.status.toLowerCase()">
+                      {{ selectedInvestmentDetails.status }}
+                    </span>
+                  </span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Asset Class</span>
+                  <span class="cell-value">{{ selectedInvestmentDetails.investmentType }}</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Principal Amount</span>
+                  <span class="cell-value font-numeric">{{ selectedInvestmentDetails.amount | currency:'INR':'symbol':'1.2-2' }}</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Expected Returns</span>
+                  <span class="cell-value text-green font-numeric">{{ selectedInvestmentDetails.returns | currency:'INR':'symbol':'1.2-2' }}</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="cell-label">Maturity Value</span>
+                  <span class="cell-value font-numeric font-bold">
+                    {{ (selectedInvestmentDetails.amount + (selectedInvestmentDetails.returns || 0)) | currency:'INR':'symbol':'1.2-2' }}
+                  </span>
+                </div>
+                @if (selectedInvestmentDetails.investmentDate) {
+                  <div class="detail-cell">
+                    <span class="cell-label">Investment Date</span>
+                    <span class="cell-value">{{ selectedInvestmentDetails.investmentDate | date:'medium' }}</span>
+                  </div>
+                }
+                @if (selectedInvestmentDetails.maturityDate) {
+                  <div class="detail-cell">
+                    <span class="cell-label">Maturity Date</span>
+                    <span class="cell-value">{{ selectedInvestmentDetails.maturityDate | date:'medium' }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-primary" (click)="closeDetailsModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+</div>

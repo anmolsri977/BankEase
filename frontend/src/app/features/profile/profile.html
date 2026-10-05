@@ -1,0 +1,277 @@
+<div class="profile-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+        </div>
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">Profile</span>
+      </div>
+
+      <nav class="navbar-nav">
+        <a routerLink="/dashboard" class="nav-link" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/accounts" class="nav-link" id="nav-accounts">Accounts</a>
+        <a routerLink="/transactions" class="nav-link" id="nav-transactions">Transfers</a>
+        <a routerLink="/beneficiaries" class="nav-link" id="nav-beneficiaries">Beneficiaries</a>
+        <a routerLink="/bill-payments" class="nav-link" id="nav-bill-payments">Bills</a>
+        <a routerLink="/loans" class="nav-link" id="nav-loans">Loans</a>
+        <a routerLink="/investments" class="nav-link" id="nav-investments">Investments</a>
+        <a routerLink="/audit-logs" class="nav-link" id="nav-audit-logs">Audit Logs</a>
+        <a routerLink="/profile" class="nav-link active" id="nav-profile">Profile</a>
+      </nav>
+
+      <div class="navbar-actions">
+        <button type="button" class="btn-logout" (click)="logout()" id="logout-button">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (errorMessage) {
+    <div class="alert-error" role="alert" id="profile-error">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+      <div class="alert-actions">
+        <button type="button" class="btn-alert-retry" (click)="loadProfile()" id="btn-profile-retry">Retry</button>
+        <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss">&times;</button>
+      </div>
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="alert-success" role="alert" id="profile-success">
+      <div class="alert-content">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>{{ successMessage }}</span>
+      </div>
+      <button type="button" class="btn-alert-close" (click)="dismissMessages()" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  <!-- Main Content -->
+  <main class="profile-main">
+    <div class="profile-container">
+      <!-- Page Header -->
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">Customer Profile</h1>
+          <p class="page-subtitle">Manage your personal account identity, contact details, and security status.</p>
+        </div>
+        @if (profile && !isEditing) {
+          <button type="button" class="btn-primary" (click)="toggleEdit()" id="btn-edit-profile">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Edit Profile</span>
+          </button>
+        }
+      </section>
+
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="state-container loading-state" id="profile-loading">
+          <div class="spinner"></div>
+          <span>Loading customer profile...</span>
+        </div>
+      }
+
+      <!-- Profile Content -->
+      @if (!isLoading && profile) {
+        <!-- Profile Banner Card -->
+        <section class="profile-banner-card">
+          <div class="profile-banner-left">
+            <div class="avatar-large">
+              <span>{{ profile.name.charAt(0) }}</span>
+            </div>
+            <div class="banner-info">
+              <h2 class="customer-display-name" id="profile-display-name">{{ profile.name }}</h2>
+              <span class="customer-display-email" id="profile-display-email">{{ profile.email }}</span>
+              <div class="badge-row">
+                <span class="badge-role" id="profile-role-badge">{{ profile.role }}</span>
+                <span
+                  class="badge-kyc"
+                  id="profile-kyc-badge"
+                  [class.kyc-verified]="profile.kycStatus === 'VERIFIED'"
+                  [class.kyc-pending]="profile.kycStatus === 'PENDING'"
+                >
+                  KYC: {{ profile.kycStatus || 'PENDING' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Profile Details / Edit Section -->
+        <section class="profile-details-card">
+          <div class="card-header">
+            <h2 class="card-title">{{ isEditing ? 'Edit Personal Information' : 'Personal & Account Details' }}</h2>
+            <p class="card-hint">
+              {{ isEditing ? 'Update your display name and registered Indian mobile number.' : 'Official details registered on BankEase.' }}
+            </p>
+          </div>
+
+          @if (isEditing) {
+            <!-- Edit Form -->
+            <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="edit-form" id="profile-edit-form">
+              <div class="form-grid">
+                <!-- Full Name -->
+                <div class="form-group">
+                  <label for="profile-name-input" class="form-label">Full Name *</label>
+                  <input
+                    id="profile-name-input"
+                    type="text"
+                    formControlName="name"
+                    class="form-input"
+                    [class.input-error]="name?.invalid && (name?.dirty || name?.touched)"
+                    placeholder="e.g. Rahul Sharma"
+                  />
+                  @if (name?.invalid && (name?.dirty || name?.touched)) {
+                    <div class="error-hint">
+                      @if (name?.errors?.['required']) {
+                        <span>Name is required.</span>
+                      } @else if (name?.errors?.['minlength']) {
+                        <span>Name must be at least 2 characters.</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Phone Number -->
+                <div class="form-group">
+                  <label for="profile-phone-input" class="form-label">Mobile Number</label>
+                  <input
+                    id="profile-phone-input"
+                    type="tel"
+                    formControlName="phone"
+                    class="form-input"
+                    [class.input-error]="phone?.invalid && (phone?.dirty || phone?.touched)"
+                    placeholder="10-digit Indian mobile number"
+                  />
+                  @if (phone?.invalid && (phone?.dirty || phone?.touched)) {
+                    <div class="error-hint">
+                      <span>Must be a valid 10-digit Indian mobile number (e.g. 9876543210).</span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Email (Read-only) -->
+                <div class="form-group">
+                  <label class="form-label">Email Address (Read-only)</label>
+                  <input
+                    type="email"
+                    [value]="profile.email"
+                    class="form-input readonly-input"
+                    disabled
+                    readonly
+                  />
+                  <span class="field-note">Email is your login identifier and cannot be changed online.</span>
+                </div>
+
+                <!-- Account Role (Read-only) -->
+                <div class="form-group">
+                  <label class="form-label">Security Role (Backend Managed)</label>
+                  <input
+                    type="text"
+                    [value]="profile.role"
+                    class="form-input readonly-input"
+                    disabled
+                    readonly
+                  />
+                  <span class="field-note">Roles are assigned by security administration.</span>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="submit"
+                  class="btn-submit"
+                  id="btn-save-profile"
+                  [disabled]="isSaving || profileForm.invalid"
+                >
+                  @if (isSaving) {
+                    <span class="btn-spinner"></span>
+                    <span>Saving...</span>
+                  } @else {
+                    <span>Save Changes</span>
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  (click)="toggleEdit()"
+                  id="btn-cancel-edit"
+                  [disabled]="isSaving"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          } @else {
+            <!-- Read-only Details Grid -->
+            <div class="details-grid">
+              <div class="detail-cell">
+                <span class="cell-label">Full Name</span>
+                <span class="cell-value" id="detail-name">{{ profile.name }}</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="cell-label">Email Address</span>
+                <span class="cell-value font-mono" id="detail-email">{{ profile.email }}</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="cell-label">Registered Phone</span>
+                <span class="cell-value font-mono" id="detail-phone">{{ profile.phone || 'Not provided' }}</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="cell-label">System Role</span>
+                <span class="cell-value" id="detail-role">{{ profile.role }}</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="cell-label">KYC Verification Status</span>
+                <span class="cell-value" id="detail-kyc">{{ profile.kycStatus || 'PENDING' }}</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="cell-label">Member Since</span>
+                <span class="cell-value" id="detail-created">
+                  {{ (profile.createdAt | date:'mediumDate') || 'Active Account' }}
+                </span>
+              </div>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  </main>
+</div>

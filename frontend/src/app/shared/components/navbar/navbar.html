@@ -1,0 +1,77 @@
+<header class="navbar">
+  <div class="navbar-container">
+    <!-- Brand -->
+    <a routerLink="/dashboard" class="navbar-brand" (click)="closeMobileMenu()">
+      <div class="brand-badge">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">BankEase</span>
+        <span class="brand-tag">{{ pageTitle }}</span>
+      </div>
+    </a>
+
+    <!-- Mobile Hamburger Toggle -->
+    <button
+      type="button"
+      class="btn-mobile-toggle"
+      (click)="toggleMobileMenu()"
+      aria-label="Toggle navigation menu"
+      id="btn-mobile-menu-toggle"
+    >
+      @if (isMobileMenuOpen) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toggle-icon">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toggle-icon">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      }
+    </button>
+
+    <!-- Navigation Links -->
+    <nav class="navbar-nav" [class.mobile-open]="isMobileMenuOpen" id="main-nav-links">
+      @for (item of navItems; track item.id) {
+        <a
+          [routerLink]="item.route"
+          class="nav-link"
+          [id]="item.id"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.exact || false }"
+          (click)="closeMobileMenu()"
+        >
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <!-- Navbar Actions -->
+    <div class="navbar-actions">
+      <a routerLink="/profile" class="user-profile-link" id="nav-profile-summary" (click)="closeMobileMenu()">
+        <div class="avatar-circle">
+          <span>{{ customerName.charAt(0) }}</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ customerName }}</span>
+          <span class="user-role">{{ userRole }}</span>
+        </div>
+      </a>
+
+      <button type="button" class="btn-logout" (click)="logout()" id="logout-button">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span class="logout-text">Logout</span>
+      </button>
+    </div>
+  </div>
+</header>

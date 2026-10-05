@@ -1,0 +1,82 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="brand-badge">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg>
+      </div>
+      <h1 class="brand-title">BankEase</h1>
+      <p class="brand-subtitle">Sign in to your online banking account</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="alert-error" role="alert">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="e.g. user@example.com"
+          class="form-input"
+          [class.input-error]="email?.invalid && (email?.dirty || email?.touched)"
+          autocomplete="email"
+        />
+        @if (email?.invalid && (email?.dirty || email?.touched)) {
+          <div class="error-text">
+            @if (email?.errors?.['required']) {
+              <span>Email is required.</span>
+            } @else if (email?.errors?.['email']) {
+              <span>Please enter a valid email address.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Enter your password"
+          class="form-input"
+          [class.input-error]="password?.invalid && (password?.dirty || password?.touched)"
+          autocomplete="current-password"
+        />
+        @if (password?.invalid && (password?.dirty || password?.touched)) {
+          <div class="error-text">
+            @if (password?.errors?.['required']) {
+              <span>Password is required.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isLoading">
+        @if (isLoading) {
+          <span>Signing In...</span>
+        } @else {
+          <span>Login</span>
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <span>Don't have an account?</span>
+      <a routerLink="/register" class="register-link">Register</a>
+    </div>
+  </div>
+</div>
