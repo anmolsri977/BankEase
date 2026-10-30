@@ -1,8 +1,14 @@
 package com.NetBanking.BankEase.Controller;
 
+import com.NetBanking.BankEase.Dto.UpdateProfileRequest;
 import com.NetBanking.BankEase.Entity.User;
+import com.NetBanking.BankEase.Exception.ResourceNotFoundException;
 import com.NetBanking.BankEase.Service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,66 +19,57 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    UserService service;
+    private UserService service;
 
     @PostMapping
-    public void saveUser(@RequestBody User user){
+    public void saveUser(@RequestBody User user) {
         service.addUser(user);
     }
 
     @GetMapping({"/profile", "/me"})
-    public org.springframework.http.ResponseEntity<?> getMyProfile(org.springframework.security.core.Authentication authentication) {
+    public ResponseEntity<User> getMyProfile(Authentication authentication) {
         if (authentication == null) {
-            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+            throw new AccessDeniedException("Unauthorized");
         }
         String email = authentication.getName();
-        Optional<User> userOpt = service.getUserByEmail(email);
-        if (userOpt.isEmpty()) {
-            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND)
-                    .body(java.util.Map.of("error", "User not found"));
-        }
-        return org.springframework.http.ResponseEntity.ok(userOpt.get());
+        User user = service.getUserByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping({"/profile", "/me"})
-    public org.springframework.http.ResponseEntity<?> updateProfile(
-            @RequestBody com.NetBanking.BankEase.Dto.UpdateProfileRequest request,
-            org.springframework.security.core.Authentication authentication) {
+    public ResponseEntity<User> updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
+            Authentication authentication) {
         if (authentication == null) {
-            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+            throw new AccessDeniedException("Unauthorized");
         }
-        try {
-            User updated = service.updateProfile(request, authentication.getName());
-            return org.springframework.http.ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
-            return org.springframework.http.ResponseEntity.badRequest()
-                    .body(java.util.Map.of("error", e.getMessage()));
-        }
+        User updated = service.updateProfile(request, authentication.getName());
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping
-    public List<User> fetchUsers(){
+    public List<User> fetchUsers() {
         return service.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public Optional<User> fetchUser(@PathVariable Long id){
-         return service.getUserById(id);
+    public Optional<User> fetchUser(@PathVariable Long id) {
+        return service.getUserById(id);
     }
 
     @PutMapping
-    public void modifyUser(@RequestBody User user){
+    public void modifyUser(@RequestBody User user) {
         service.updateUser(user);
     }
 
-
     @DeleteMapping("/{id}")
-    public void deleteAUser(@PathVariable Long id){
+    public void deleteAUser(@PathVariable Long id) {
         service.deleteUser(id);
     }
 
     @DeleteMapping
-    public void deleteUsers(){
+    public void deleteUsers() {
         service.deleteAllUsers();
     }
 }

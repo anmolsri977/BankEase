@@ -1,0 +1,11 @@
+# BankEase Local Development Configuration Template
+# ----------------------------------------------------
+# Copy this file to 'application-local.properties' (which is git-ignored)
+# and configure your local development values.
+#
+# DB_URL=jdbc:mysql://localhost:3306/bankease
+# DB_USERNAME=root
+# DB_PASSWORD=your_local_password
+# JWT_SECRET=your_local_base64_encoded_or_256_bit_secret
+# FRONTEND_URL=http://localhost:4200
+# SHOW_SQL=false
