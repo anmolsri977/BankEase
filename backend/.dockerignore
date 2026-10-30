@@ -1,0 +1,6 @@
+target/
+*.log
+application-local.properties
+.idea/
+.vscode/
+.git/
